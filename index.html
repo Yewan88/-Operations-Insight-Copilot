@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Operations Insight Copilot · 运营策略分析助手</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="layout">
+
+  <!-- ================= 侧边导航 ================= -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">OI</div>
+      <div class="logo-text">
+        <b>Operations Insight</b>
+        <span>运营策略分析助手</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-group-title">数据分析</div>
+      <div class="nav-item" data-view="dashboard"><span class="icon">📊</span>核心指标 Dashboard</div>
+      <div class="nav-item" data-view="upload"><span class="icon">📂</span>数据上传与管理</div>
+      <div class="nav-item" data-view="decompose"><span class="icon">🧩</span>业务指标拆解</div>
+      <div class="nav-item" data-view="anomaly"><span class="icon">🚨</span>异常监控与诊断</div>
+      <div class="nav-group-title">AI 能力</div>
+      <div class="nav-item" data-view="report"><span class="icon">📝</span>AI 复盘报告</div>
+      <div class="nav-item" data-view="workflow"><span class="icon">⚡</span>AI Workflow</div>
+    </nav>
+
+    <div class="sidebar-footer">
+      Operations Insight Copilot<br />
+      策略运营 · 数据分析 Demo v1.0
+    </div>
+  </aside>
+
+  <!-- ================= 主区域 ================= -->
+  <div class="main">
+    <header class="topbar">
+      <h1 id="topbar-title">核心经营指标 Dashboard</h1>
+      <div class="topbar-right">
+        <span class="period-label" id="topbar-range"></span>
+        <span class="tag" id="topbar-source">演示数据</span>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ========== 模块一：数据上传与管理 ========== -->
+      <section class="view" id="view-upload">
+        <p class="page-desc">上传日级运营数据 CSV，系统自动完成解析、清洗与建模，作为全部分析模块的数据源。</p>
+
+        <div class="card">
+          <div class="card-title">上传运营数据</div>
+          <div class="card-sub">支持 UTF-8 编码 CSV，表头兼容中文 / 英文字段名；转化率支持「3.2%」「3.2」「0.032」三种写法</div>
+
+          <div class="upload-zone" id="upload-zone">
+            <div class="up-icon">📄</div>
+            <p><b>点击选择文件</b> 或将 CSV 文件拖拽到此处</p>
+            <p class="hint">建议数据覆盖 ≥ 14 天，以便进行周期环比与异常检测</p>
+          </div>
+          <input type="file" id="file-input" accept=".csv,.txt" hidden />
+
+          <div class="field-chips">
+            <span class="chip">日期 Date</span><span class="chip">城市 City</span><span class="chip">GMV</span>
+            <span class="chip">订单量 Orders</span><span class="chip">活跃用户 Active Users</span>
+            <span class="chip">新增用户 New Users</span><span class="chip">用户转化率 Conversion Rate</span>
+            <span class="chip">平均客单价 AOV</span><span class="chip">营销补贴成本 Subsidy Cost</span>
+            <span class="chip">利润 Profit</span>
+          </div>
+
+          <div class="upload-status" id="upload-status"></div>
+
+          <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn" id="btn-download-sample">⬇ 下载示例 CSV</button>
+            <button class="btn" id="btn-load-demo">↻ 恢复内置演示数据</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head-row">
+            <div>
+              <div class="card-title">基础数据明细</div>
+              <div class="card-sub">解析后的标准化数据，按日期倒序排列</div>
+            </div>
+            <select class="ctrl" id="table-city-filter"></select>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>日期</th><th>城市</th><th>GMV</th><th>订单量</th><th>活跃用户</th>
+                  <th>新增用户</th><th>转化率</th><th>客单价</th><th>补贴成本</th><th>利润</th>
+                </tr>
+              </thead>
+              <tbody id="data-table-body"></tbody>
+            </table>
+          </div>
+          <div class="pager">
+            <span id="pager-info"></span>
+            <button id="pager-prev">上一页</button>
+            <button id="pager-next">下一页</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 模块二：Dashboard ========== -->
+      <section class="view active" id="view-dashboard">
+        <p class="page-desc" id="dash-period"></p>
+
+        <div class="card" style="padding:14px 20px">
+          <div class="card-head-row">
+            <div class="card-title" style="margin-bottom:0">核心经营指标</div>
+            <select class="ctrl" id="dash-city-filter"></select>
+          </div>
+        </div>
+
+        <div class="kpi-grid" id="kpi-grid"></div>
+
+        <div class="chart-grid">
+          <div class="card">
+            <div class="card-title">GMV 变化趋势</div>
+            <div class="card-sub">日级 GMV 走势（元）</div>
+            <div id="chart-gmv"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">订单量变化趋势</div>
+            <div class="card-sub">日级订单量走势（单）</div>
+            <div id="chart-orders"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">用户规模趋势</div>
+            <div class="card-sub">活跃用户与新增用户走势（人）</div>
+            <div id="chart-users"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">转化率变化</div>
+            <div class="card-sub">订单量 / 活跃用户（%）</div>
+            <div id="chart-conv"></div>
+          </div>
+          <div class="card" style="grid-column:1/-1">
+            <div class="card-title">成本及利润表现</div>
+            <div class="card-sub">营销补贴成本 vs 利润（元 / 日）</div>
+            <div id="chart-profit"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 模块三：指标拆解 ========== -->
+      <section class="view" id="view-decompose">
+        <p class="page-desc" id="decomp-period"></p>
+
+        <div class="formula-banner">
+          <div class="f-item"><b>GMV</b><span>成交总额</span></div>
+          <span class="f-op">=</span>
+          <div class="f-item"><b>活跃用户数</b><span>用户规模</span></div>
+          <span class="f-op">×</span>
+          <div class="f-item"><b>转化率</b><span>转化效率</span></div>
+          <span class="f-op">×</span>
+          <div class="f-item"><b>客单价</b><span>单均价值</span></div>
+          <span style="font-size:12px;color:#A05B1F;margin-left:auto">采用 LMDI 对数分解，三因子贡献严格加总为 GMV 总变化</span>
+        </div>
+
+        <div class="card">
+          <div class="card-head-row">
+            <div>
+              <div class="card-title">GMV 变化归因</div>
+              <div class="card-sub">当 GMV 发生变化时，自动拆解用户规模、转化效率与客单价三个因子的贡献</div>
+            </div>
+            <select class="ctrl" id="decomp-city-filter"></select>
+          </div>
+          <div id="decomp-result"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">分城市拆解明细</div>
+          <div class="card-sub">各城市 GMV 环比变化的因子贡献（占上期 GMV 的百分点）</div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>城市</th><th>本期 GMV</th><th>GMV 环比</th>
+                  <th>用户规模贡献</th><th>转化效率贡献</th><th>客单价贡献</th><th>主导因子</th>
+                </tr>
+              </thead>
+              <tbody id="decomp-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 模块四：异常监控与诊断 ========== -->
+      <section class="view" id="view-anomaly">
+        <p class="page-desc" id="anomaly-period"></p>
+        <div class="anomaly-summary" id="anomaly-summary"></div>
+        <div class="anomaly-list" id="anomaly-list"></div>
+      </section>
+
+      <!-- ========== 模块五：AI 复盘报告 ========== -->
+      <section class="view" id="view-report">
+        <p class="page-desc">基于当前数据的环比统计、指标拆解与异常诊断结果，一键生成结构化运营周报，可直接粘贴至飞书 / 邮件。</p>
+
+        <div class="card">
+          <div class="card-title">AI 运营复盘报告</div>
+          <div class="card-sub">报告结构：业务概况 → 关键变化 → 问题诊断 → 原因分析 → 优化策略</div>
+
+          <div class="report-toolbar">
+            <button class="btn primary large" id="btn-gen-report">✨ 生成运营分析报告</button>
+            <button class="btn" id="btn-copy-report" style="display:none">📋 复制报告</button>
+          </div>
+
+          <div class="ai-thinking" id="ai-thinking">
+            <div class="spinner"></div>
+            <span>AI 正在分析数据：环比计算 → 指标拆解 → 异常归因 → 策略生成…</span>
+          </div>
+
+          <div class="report-area" id="report-area"></div>
+        </div>
+      </section>
+
+      <!-- ========== 模块六：AI Workflow ========== -->
+      <section class="view" id="view-workflow">
+        <div class="hero-banner">
+          <h2>AI Workflow · 重塑运营分析工作流</h2>
+          <p>将「导数据 → 整理 → 找异常 → 写周报」的重复性人工流程，升级为数据自动解析、AI 异常检测、指标自动拆解与智能报告生成的自动化流水线，让运营把时间花在策略判断上。</p>
+        </div>
+
+        <div class="flow-compare">
+          <!-- 传统流程 -->
+          <div class="flow-col">
+            <div class="flow-col-title">
+              <b>传统人工流程</b>
+              <span class="tag gray">Before</span>
+            </div>
+            <div class="flow-steps">
+              <div class="flow-step">
+                <div class="s-icon">🗂</div>
+                <div class="s-body"><div class="s-name">人工导出数据</div><div class="s-desc">从多个后台逐个下载报表，口径分散</div></div>
+                <div class="s-time">~30 分钟</div>
+              </div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-step">
+                <div class="s-icon">📑</div>
+                <div class="s-body"><div class="s-name">Excel 整理</div><div class="s-desc">手动 VLOOKUP / 透视表拼接多城市数据</div></div>
+                <div class="s-time">~60 分钟</div>
+              </div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-step">
+                <div class="s-icon">🔍</div>
+                <div class="s-body"><div class="s-name">人工发现异常</div><div class="s-desc">逐城市肉眼比对环比，容易漏检</div></div>
+                <div class="s-time">~45 分钟</div>
+              </div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-step">
+                <div class="s-icon">✍️</div>
+                <div class="s-body"><div class="s-name">撰写周报</div><div class="s-desc">归因靠经验拍脑袋，格式因人而异</div></div>
+                <div class="s-time">~90 分钟</div>
+              </div>
+            </div>
+            <div class="flow-total"><span>单次复盘总耗时</span><b>约 3.5+ 小时</b></div>
+          </div>
+
+          <!-- AI 流程 -->
+          <div class="flow-col ai">
+            <div class="flow-col-title">
+              <b>AI 自动化流程</b>
+              <span class="tag">After · Copilot</span>
+            </div>
+            <div class="flow-steps">
+              <div class="flow-step">
+                <div class="s-icon">⚙️</div>
+                <div class="s-body"><div class="s-name">数据自动解析</div><div class="s-desc">CSV 上传即完成字段映射、清洗与建模</div></div>
+                <div class="s-time">秒级</div>
+              </div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-step">
+                <div class="s-icon">🚨</div>
+                <div class="s-body"><div class="s-name">AI 异常检测</div><div class="s-desc">城市 × 指标全量扫描，环比超阈值自动标记</div></div>
+                <div class="s-time">秒级</div>
+              </div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-step">
+                <div class="s-icon">🧩</div>
+                <div class="s-body"><div class="s-name">指标自动拆解</div><div class="s-desc">GMV = 用户 × 转化 × 客单价，量化各因子贡献</div></div>
+                <div class="s-time">秒级</div>
+              </div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-step">
+                <div class="s-icon">🤖</div>
+                <div class="s-body"><div class="s-name">智能生成分析报告</div><div class="s-desc">结构化周报一键生成，人工只需校对与补充判断</div></div>
+                <div class="s-time">~1 分钟</div>
+              </div>
+            </div>
+            <div class="flow-total"><span>单次复盘总耗时</span><b>约 15 分钟</b></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:18px">
+          <div class="card-title">AI 提效价值</div>
+          <div class="card-sub">效率提升只是起点，更重要的是分析口径统一与问题发现的及时性</div>
+          <div class="value-grid">
+            <div class="value-card">
+              <div class="v-icon">⏱</div>
+              <b>复盘效率提升</b>
+              <p>单次周报复盘从 3.5+ 小时压缩到 15 分钟以内，运营可将时间投入策略设计与落地。</p>
+              <div class="v-num">↑ 90%+</div>
+            </div>
+            <div class="value-card">
+              <div class="v-icon">🎯</div>
+              <b>异常发现更及时</b>
+              <p>从「周报里才发现问题」变为数据更新即检出异常，问题响应从周级提前到日级。</p>
+              <div class="v-num">周级 → 日级</div>
+            </div>
+            <div class="value-card">
+              <div class="v-icon">📐</div>
+              <b>归因口径统一</b>
+              <p>用统一的因子拆解模型替代经验式归因，团队内结论可对齐、可复核、可追溯。</p>
+              <div class="v-num">1 套口径</div>
+            </div>
+            <div class="value-card">
+              <div class="v-icon">📄</div>
+              <b>报告标准化</b>
+              <p>周报结构与质量不再依赖个人能力，新人也能产出符合团队标准的复盘报告。</p>
+              <div class="v-num">100% 结构化</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script src="js/mockdata.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/analysis.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
